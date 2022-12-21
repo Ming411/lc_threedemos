@@ -44835,6 +44835,21 @@ lightBall.add(pointLight); // 将灯光绑定到物体上
 sphereGroup.add(lightBall);
 sphereGroup.position.set(0, -60, 0);
 scene.add(sphereGroup);
+_gsap.default.to(lightBall.position, {
+  x: -3,
+  duration: 6,
+  ease: 'power2.inOut',
+  repeat: -1,
+  yoyo: true
+});
+_gsap.default.to(lightBall.position, {
+  y: 0,
+  duration: 0.5,
+  ease: 'power2.inOut',
+  repeat: -1,
+  yoyo: true
+});
+
 /* 滚动事件 */
 var arrGroup = [cubeGroup, sjGroup, sphereGroup];
 var currentPage = 0;
@@ -44851,8 +44866,29 @@ window.addEventListener('scroll', function (ev) {
       top: window.innerHeight * currentPage,
       behavior: 'smooth'   // 带动画效果
     }); */
+
+    // 获取元素 增加动画
+    /* gsap.to(`.page${currentPage} h1`, {
+      rotate: '+=360', // 如果想每次都旋转就需要用+=
+      duration: 1
+    }); */
+    _gsap.default.fromTo( // fromTo 可以设置起始动画
+    ".page".concat(currentPage, " h1"), {
+      x: -300
+    }, {
+      x: 0,
+      rotate: '+=360',
+      duration: 1
+    });
   }
 });
+/* 鼠标移动事件 */
+var mouse2 = new THREE.Vector2();
+window.addEventListener('mousemove', function (ev) {
+  mouse2.x = ev.clientX / window.innerWidth - 0.5;
+  mouse2.y = ev.clientY / window.innerHeight - 0.5;
+});
+
 // 渲染器
 /* alpha 设置渲染器透明，便于看到后面的文字 */
 var renderer = new THREE.WebGLRenderer({
@@ -44875,19 +44911,26 @@ scene.add(axesHelper);
 // 设置时钟
 var clock = new THREE.Clock();
 function render() {
-  var time = clock.getElapsedTime();
+  // let time = clock.getElapsedTime(); // 当前时间
+  var time2 = clock.getDelta(); // 两次时间差 不能与getElapsedTime同时使用
   // cubeGroup.rotation.x = time * 0.5;
   // cubeGroup.rotation.y = time * 0.5;
   // sjGroup.rotation.x = time * 0.3;
   // sjGroup.rotation.y = time * 0.3;
   // sphereGroup.rotation.x = Math.sin(time) * 0.05;
   // sphereGroup.rotation.z = Math.sin(time) * 0.05;
-  lightBall.position.x = Math.cos(time);
+  /*   lightBall.position.x = Math.cos(time);
   lightBall.position.z = Math.sin(time);
-  lightBall.position.y = Math.sin(time * 10) / 2 + 2;
+  lightBall.position.y = Math.sin(time * 10) / 2 + 2; */
 
   // 滚动时变换相机位置
   camera.position.y = -(window.scrollY / window.innerHeight) * 30;
+
+  // 鼠标移动物体摇晃效果
+  // mouse2.x ==> -0.5 ~ 0.5
+  // camera.position.x = mouse2.x * 10;
+  // 缓动
+  camera.position.x += (mouse2.x * 10 - camera.position.x) * time2 * 5;
   // controls.update();
   renderer.render(scene, camera);
   requestAnimationFrame(render);
@@ -44928,7 +44971,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "1610" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "13309" + '/');
   ws.onmessage = function (event) {
     checkedAssets = {};
     assetsToAccept = [];
