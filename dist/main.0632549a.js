@@ -44717,98 +44717,254 @@ var index = {
 };
 var _default = index;
 exports.default = _default;
-},{}],"shader/raw/vertex.glsl":[function(require,module,exports) {
-module.exports = "precision lowp float;\n#define GLSLIFY 1\n// 原生raw不会自动将 position 等这些值自动传入\nattribute vec3 position;\nattribute vec2 uv;\n\nuniform mat4 projectionMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 modelMatrix;\n\nuniform float utime;  // 获取传递进来的时间\n\nvarying vec2 vUv;  // 用于将uv传递给片元着色器\n//  必须给浮点数设置精度 (一般在代码顶部设置)\n// highp -2^16  ~ 2^16\n// mediump -2^10  ~ 2^10\n// lowp -2^8  ~ 2^8\n\nvarying float vElevation; // 用于传递Z轴数据\n\nvoid main() {\n  vUv = uv;\n  vec4 modelPosition = modelMatrix * vec4(position,1); // 模型位置\n  // modelPosition.x += 1.0;  // 将模型向右移动一个单位\n  // modelPosition.z += modelPosition.x; // 每个顶点都进行操作\n  modelPosition.z = sin(modelPosition.x*10.0+utime)*0.1; // 经度和分号都不可少，而且需要够足多个顶点\n  modelPosition.z += sin(modelPosition.y*10.0+utime)*0.1;\n\n  vElevation = modelPosition.z;\n  gl_Position = projectionMatrix * viewMatrix * modelPosition;\n}";
-},{}],"shader/raw/fragment.glsl":[function(require,module,exports) {
-module.exports = "precision lowp float;\n#define GLSLIFY 1\nvarying vec2 vUv;  // 二维向量\nvarying float vElevation;\nuniform sampler2D uTexture;\n// {\n//     \"0\": 0,\n//     \"1\": 1,\n//     \"2\": 1,\n//     \"3\": 1,\n//     \"4\": 0,\n//     \"5\": 0,\n//     \"6\": 1,\n//     \"7\": 0\n// }\nvoid main() {\n  // gl_FragColor = vec4(vUv,0.0,1.0);\n  float deep = vElevation + 0.1 * 10.0;  // 不能修改传递过来的值\n  // gl_FragColor = vec4(1.0*deep,0.0,0.0,1.0);\n\n  // 根据uv设置纹理贴图\n  vec4 textureColor = texture2D(uTexture,vUv);\n  gl_FragColor.rgb *= deep; // 附加动态层次效果\n  gl_FragColor = textureColor;\n}";
-},{}],"main/main.js":[function(require,module,exports) {
+},{}],"../node_modules/three/examples/jsm/renderers/CSS2DRenderer.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.CSS2DRenderer = exports.CSS2DObject = void 0;
+var _three = require("three");
+function _typeof(obj) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, _typeof(obj); }
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); Object.defineProperty(Constructor, "prototype", { writable: false }); return Constructor; }
+function _get() { if (typeof Reflect !== "undefined" && Reflect.get) { _get = Reflect.get.bind(); } else { _get = function _get(target, property, receiver) { var base = _superPropBase(target, property); if (!base) return; var desc = Object.getOwnPropertyDescriptor(base, property); if (desc.get) { return desc.get.call(arguments.length < 3 ? target : receiver); } return desc.value; }; } return _get.apply(this, arguments); }
+function _superPropBase(object, property) { while (!Object.prototype.hasOwnProperty.call(object, property)) { object = _getPrototypeOf(object); if (object === null) break; } return object; }
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); Object.defineProperty(subClass, "prototype", { writable: false }); if (superClass) _setPrototypeOf(subClass, superClass); }
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf ? Object.setPrototypeOf.bind() : function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = _getPrototypeOf(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = _getPrototypeOf(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return _possibleConstructorReturn(this, result); }; }
+function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } else if (call !== void 0) { throw new TypeError("Derived constructors may only return object or undefined"); } return _assertThisInitialized(self); }
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); return true; } catch (e) { return false; } }
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf.bind() : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+var CSS2DObject = /*#__PURE__*/function (_Object3D) {
+  _inherits(CSS2DObject, _Object3D);
+  var _super = _createSuper(CSS2DObject);
+  function CSS2DObject(element = document.createElement('div')) {
+    var _this2;
+    _classCallCheck(this, CSS2DObject);
+    _this2 = _super.call(this);
+    _this2.isCSS2DObject = true;
+    _this2.element = element;
+    _this2.element.style.position = 'absolute';
+    _this2.element.style.userSelect = 'none';
+    _this2.element.setAttribute('draggable', false);
+    _this2.addEventListener('removed', function () {
+      this.traverse(function (object) {
+        if (object.element instanceof Element && object.element.parentNode !== null) {
+          object.element.parentNode.removeChild(object.element);
+        }
+      });
+    });
+    return _this2;
+  }
+  _createClass(CSS2DObject, [{
+    key: "copy",
+    value: function copy(source, recursive) {
+      _get(_getPrototypeOf(CSS2DObject.prototype), "copy", this).call(this, source, recursive);
+      this.element = source.element.cloneNode(true);
+      return this;
+    }
+  }]);
+  return CSS2DObject;
+}(_three.Object3D); //
+exports.CSS2DObject = CSS2DObject;
+var _vector = new _three.Vector3();
+var _viewMatrix = new _three.Matrix4();
+var _viewProjectionMatrix = new _three.Matrix4();
+var _a = new _three.Vector3();
+var _b = new _three.Vector3();
+var CSS2DRenderer = /*#__PURE__*/_createClass(function CSS2DRenderer(parameters = {}) {
+  _classCallCheck(this, CSS2DRenderer);
+  var _this = this;
+  var _width, _height;
+  var _widthHalf, _heightHalf;
+  var cache = {
+    objects: new WeakMap()
+  };
+  var domElement = parameters.element !== undefined ? parameters.element : document.createElement('div');
+  domElement.style.overflow = 'hidden';
+  this.domElement = domElement;
+  this.getSize = function () {
+    return {
+      width: _width,
+      height: _height
+    };
+  };
+  this.render = function (scene, camera) {
+    if (scene.matrixWorldAutoUpdate === true) scene.updateMatrixWorld();
+    if (camera.parent === null && camera.matrixWorldAutoUpdate === true) camera.updateMatrixWorld();
+    _viewMatrix.copy(camera.matrixWorldInverse);
+    _viewProjectionMatrix.multiplyMatrices(camera.projectionMatrix, _viewMatrix);
+    renderObject(scene, scene, camera);
+    zOrder(scene);
+  };
+  this.setSize = function (width, height) {
+    _width = width;
+    _height = height;
+    _widthHalf = _width / 2;
+    _heightHalf = _height / 2;
+    domElement.style.width = width + 'px';
+    domElement.style.height = height + 'px';
+  };
+  function renderObject(object, scene, camera) {
+    if (object.isCSS2DObject) {
+      _vector.setFromMatrixPosition(object.matrixWorld);
+      _vector.applyMatrix4(_viewProjectionMatrix);
+      var visible = object.visible === true && _vector.z >= -1 && _vector.z <= 1 && object.layers.test(camera.layers) === true;
+      object.element.style.display = visible === true ? '' : 'none';
+      if (visible === true) {
+        object.onBeforeRender(_this, scene, camera);
+        var element = object.element;
+        element.style.transform = 'translate(-50%,-50%) translate(' + (_vector.x * _widthHalf + _widthHalf) + 'px,' + (-_vector.y * _heightHalf + _heightHalf) + 'px)';
+        if (element.parentNode !== domElement) {
+          domElement.appendChild(element);
+        }
+        object.onAfterRender(_this, scene, camera);
+      }
+      var objectData = {
+        distanceToCameraSquared: getDistanceToSquared(camera, object)
+      };
+      cache.objects.set(object, objectData);
+    }
+    for (var i = 0, l = object.children.length; i < l; i++) {
+      renderObject(object.children[i], scene, camera);
+    }
+  }
+  function getDistanceToSquared(object1, object2) {
+    _a.setFromMatrixPosition(object1.matrixWorld);
+    _b.setFromMatrixPosition(object2.matrixWorld);
+    return _a.distanceToSquared(_b);
+  }
+  function filterAndFlatten(scene) {
+    var result = [];
+    scene.traverse(function (object) {
+      if (object.isCSS2DObject) result.push(object);
+    });
+    return result;
+  }
+  function zOrder(scene) {
+    var sorted = filterAndFlatten(scene).sort(function (a, b) {
+      if (a.renderOrder !== b.renderOrder) {
+        return b.renderOrder - a.renderOrder;
+      }
+      var distanceA = cache.objects.get(a).distanceToCameraSquared;
+      var distanceB = cache.objects.get(b).distanceToCameraSquared;
+      return distanceA - distanceB;
+    });
+    var zMax = sorted.length;
+    for (var i = 0, l = sorted.length; i < l; i++) {
+      sorted[i].element.style.zIndex = zMax - i;
+    }
+  }
+});
+exports.CSS2DRenderer = CSS2DRenderer;
+},{"three":"../node_modules/three/build/three.module.js"}],"main/main.js":[function(require,module,exports) {
 "use strict";
 
 var THREE = _interopRequireWildcard(require("three"));
 var _OrbitControls = require("three/examples/jsm/controls/OrbitControls");
 var _gsap = _interopRequireDefault(require("gsap"));
 var dat = _interopRequireWildcard(require("dat.gui"));
-var _vertex = _interopRequireDefault(require("../shader/raw/vertex.glsl"));
-var _fragment = _interopRequireDefault(require("../shader/raw/fragment.glsl"));
+var _CSS2DRenderer = require("three/examples/jsm/renderers/CSS2DRenderer");
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function (nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
 function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(nodeInterop); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
 // 导入轨道控制器
 
 var gui = new dat.GUI();
+var textureLoader = new THREE.TextureLoader();
 var scene = new THREE.Scene();
 
 // 角度，宽高比 最近可视距离  最远
-var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-camera.position.set(0, 0, 3);
+var camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 200);
+camera.position.set(0, 5, -10);
 scene.add(camera);
-var textureLoader = new THREE.TextureLoader();
-var texture = textureLoader.load('./textures/ca.jpg');
+var earth = new THREE.Mesh(new THREE.SphereGeometry(1, 16, 16), new THREE.MeshBasicMaterial({
+  map: textureLoader.load('textures/planets/earth_atmos_2048.jpg'),
+  normalScale: new THREE.Vector2(0.85, 0.85)
+}));
+scene.add(earth);
+var moon = new THREE.Mesh(new THREE.SphereGeometry(0.27, 16, 16), new THREE.MeshBasicMaterial({
+  map: textureLoader.load('textures/planets/moon_1024.jpg')
+}));
+scene.add(moon);
 
-// 创建材质
-var material = new THREE.MeshBasicMaterial({
-  color: '#ff0000'
-});
-// 使用着色器定义材质
-// const shaderMaterial = new THREE.ShaderMaterial({
-// RawShaderMaterial 原始shader 需要提供更多的参数
-var rawShaderMaterial = new THREE.RawShaderMaterial({
-  // 顶点着色器
-  // gl_Position 四维向量
-  // <投影矩阵>·<视图矩裤>·<模型矩阵>·<顶点坐标>
-  /*   vertexShader: `
-  void main() {
-    gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4(position,1);
-  }
-  ` */
-  vertexShader: _vertex.default,
-  // 片元着色器
-  /* fragmentShader: `
-    void main() {
-      gl_FragColor = vec4(1.0,0.0,0.0,1.0);
-    }
-  ` */
-  fragmentShader: _fragment.default,
-  // wireframe: true // 显示为线框
-  side: THREE.DoubleSide,
-  // uniforms 可以直接在顶点着色器和片元着色器中使用
-  uniforms: {
-    utime: {
-      value: 0
-    },
-    uTexture: {
-      // 通过着色器设置纹理
-      value: texture
-    }
-  }
-});
-var plane = new THREE.Mesh(new THREE.PlaneGeometry(1, 1, 64, 64),
-// material
-rawShaderMaterial);
-console.log(plane);
-scene.add(plane);
+/* 创建 提示标签 */
+var earthDiv = document.createElement('div');
+earthDiv.className = 'label';
+earthDiv.innerHTML = '地球';
+// css2D 需要专门的渲染器
+var earthLabel = new _CSS2DRenderer.CSS2DObject(earthDiv);
+earthLabel.position.set(0, 1, 0);
+earth.add(earthLabel); // 往地球上添加标签
+
+// 中国地区
+var chinaDiv = document.createElement('div');
+chinaDiv.className = 'label1';
+chinaDiv.innerHTML = '中国';
+var chinaLabel = new _CSS2DRenderer.CSS2DObject(chinaDiv);
+chinaLabel.position.set(-0.3, 0.5, -0.9);
+earth.add(chinaLabel);
+// 中国地区
+
+var moonDiv = document.createElement('div');
+moonDiv.className = 'label';
+moonDiv.innerHTML = '月球';
+// css2D 需要专门的渲染器
+var moonLabel = new _CSS2DRenderer.CSS2DObject(moonDiv);
+moonLabel.position.set(0, 0.3, 0);
+moon.add(moonLabel);
+
+// 实例化css2D渲染器
+var labelRenderer = new _CSS2DRenderer.CSS2DRenderer();
+labelRenderer.setSize(window.innerWidth, window.innerHeight);
+document.body.appendChild(labelRenderer.domElement);
+labelRenderer.domElement.style.position = 'fixed';
+labelRenderer.domElement.style.top = '0px';
+labelRenderer.domElement.style.left = '0px';
+labelRenderer.domElement.style.zIndex = '10';
+
+// 实例化射线
+var raycaster = new THREE.Raycaster();
 
 // 渲染器
-var renderer = new THREE.WebGLRenderer();
+var renderer = new THREE.WebGLRenderer({
+  alpha: true
+});
 renderer.setSize(window.innerWidth, window.innerHeight);
-// renderer.physicallyCorrectLights = true; // 使用物理上正确的光照模式
-// renderer.shadowMap.enabled = true;
 
 // 将元素添加至 body
 document.body.appendChild(renderer.domElement);
-// renderer.render(scene, camera);
 // 创建控制器
-var controls = new _OrbitControls.OrbitControls(camera, renderer.domElement);
+var controls = new _OrbitControls.OrbitControls(camera, labelRenderer.domElement);
 // 设置阻尼
 controls.enableDamping = true;
 // 坐标轴辅助器
 var axesHelper = new THREE.AxesHelper(5);
-scene.add(axesHelper);
+// scene.add(axesHelper);
 // 设置时钟
 var clock = new THREE.Clock();
 function render() {
   var elapsedTime = clock.getElapsedTime();
-  rawShaderMaterial.uniforms.utime.value = elapsedTime;
+  moon.position.x = Math.cos(elapsedTime) * 5;
+  moon.position.z = Math.sin(elapsedTime) * 5;
+
+  /* 检测射线碰撞 */
+  // 将此向量(坐标)从世界空间投影到相机的标准化设备坐标 (NDC) 空间
+  var chinaPosition = chinaLabel.position.clone();
+  chinaPosition.project(camera); // chinaPosition位置转为 -1 ~ 1 坐标系中的点
+  raycaster.setFromCamera(chinaPosition, camera); // 生成线段
+  // // 检测是否存在碰撞
+  var intersects = raycaster.intersectObjects(scene.children, true);
+  // 如果没有碰撞到任何物体,就表示物体没有被遮挡，展示Label
+  if (intersects.length == 0) {
+    chinaLabel.element.classList.add('visible');
+  } else {
+    chinaLabel.element.classList.remove('visible');
+  }
+  labelRenderer.render(scene, camera); // css渲染器
   controls.update();
   renderer.render(scene, camera);
   requestAnimationFrame(render);
@@ -44823,8 +44979,10 @@ window.addEventListener('resize', function () {
   renderer.setSize(window.innerWidth, window.innerHeight);
   // 设置渲染器像素比
   renderer.setPixelRatio(window.devicePixelRatio);
+  // 更新CSS渲染器
+  labelRenderer.setSize(window.innerWidth, window.innerHeight);
 });
-},{"three":"../node_modules/three/build/three.module.js","three/examples/jsm/controls/OrbitControls":"../node_modules/three/examples/jsm/controls/OrbitControls.js","gsap":"../node_modules/gsap/index.js","dat.gui":"../node_modules/dat.gui/build/dat.gui.module.js","../shader/raw/vertex.glsl":"shader/raw/vertex.glsl","../shader/raw/fragment.glsl":"shader/raw/fragment.glsl"}],"../node_modules/.pnpm/parcel-bundler@1.12.5/node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
+},{"three":"../node_modules/three/build/three.module.js","three/examples/jsm/controls/OrbitControls":"../node_modules/three/examples/jsm/controls/OrbitControls.js","gsap":"../node_modules/gsap/index.js","dat.gui":"../node_modules/dat.gui/build/dat.gui.module.js","three/examples/jsm/renderers/CSS2DRenderer":"../node_modules/three/examples/jsm/renderers/CSS2DRenderer.js"}],"../node_modules/.pnpm/parcel-bundler@1.12.5/node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 var OldModule = module.bundle.Module;
@@ -44849,7 +45007,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "14156" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "12583" + '/');
   ws.onmessage = function (event) {
     checkedAssets = {};
     assetsToAccept = [];

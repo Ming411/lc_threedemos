@@ -8,6 +8,17 @@ body {
 ::-webkit-scrollbar {
   display: none;
 }
+.label {
+  color: #fff;
+}
+.label1 {
+  display: none;
+  color: orangered;
+}
+
+.label1.visible {
+  display: block;
+}
 
 
 /*# sourceMappingURL=/style.a11e3109.css.map */

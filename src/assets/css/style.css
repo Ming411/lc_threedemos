@@ -8,3 +8,14 @@ body {
 ::-webkit-scrollbar {
   display: none;
 }
+.label {
+  color: #fff;
+}
+.label1 {
+  display: none;
+  color: orangered;
+}
+
+.label1.visible {
+  display: block;
+}

@@ -3,91 +3,109 @@ import * as THREE from 'three';
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls';
 import gsap from 'gsap';
 import * as dat from 'dat.gui';
-
-import basicVertexShader from '../shader/raw/vertex.glsl';
-import basicFragmentShader from '../shader/raw/fragment.glsl';
+import {CSS2DRenderer, CSS2DObject} from 'three/examples/jsm/renderers/CSS2DRenderer';
 
 const gui = new dat.GUI();
-
+const textureLoader = new THREE.TextureLoader();
 const scene = new THREE.Scene();
 
 // 角度，宽高比 最近可视距离  最远
-const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 200);
 
-camera.position.set(0, 0, 3);
+camera.position.set(0, 5, -10);
 scene.add(camera);
 
-const textureLoader = new THREE.TextureLoader();
-const texture = textureLoader.load('./textures/ca.jpg');
-
-// 创建材质
-const material = new THREE.MeshBasicMaterial({
-  color: '#ff0000'
-});
-// 使用着色器定义材质
-// const shaderMaterial = new THREE.ShaderMaterial({
-// RawShaderMaterial 原始shader 需要提供更多的参数
-const rawShaderMaterial = new THREE.RawShaderMaterial({
-  // 顶点着色器
-  // gl_Position 四维向量
-  // <投影矩阵>·<视图矩裤>·<模型矩阵>·<顶点坐标>
-  /*   vertexShader: `
-  void main() {
-    gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4(position,1);
-  }
-` */
-  vertexShader: basicVertexShader,
-  // 片元着色器
-  /* fragmentShader: `
-    void main() {
-      gl_FragColor = vec4(1.0,0.0,0.0,1.0);
-    }
-  ` */
-  fragmentShader: basicFragmentShader,
-  // wireframe: true // 显示为线框
-  side: THREE.DoubleSide,
-  // uniforms 可以直接在顶点着色器和片元着色器中使用
-  uniforms: {
-    utime: {
-      value: 0
-    },
-    uTexture: {
-      // 通过着色器设置纹理
-      value: texture
-    }
-  }
-});
-const plane = new THREE.Mesh(
-  new THREE.PlaneGeometry(1, 1, 64, 64),
-  // material
-  rawShaderMaterial
+const earth = new THREE.Mesh(
+  new THREE.SphereGeometry(1, 16, 16),
+  new THREE.MeshBasicMaterial({
+    map: textureLoader.load('textures/planets/earth_atmos_2048.jpg'),
+    normalScale: new THREE.Vector2(0.85, 0.85)
+  })
 );
-console.log(plane);
-scene.add(plane);
+scene.add(earth);
+
+const moon = new THREE.Mesh(
+  new THREE.SphereGeometry(0.27, 16, 16),
+  new THREE.MeshBasicMaterial({
+    map: textureLoader.load('textures/planets/moon_1024.jpg')
+  })
+);
+scene.add(moon);
+
+/* 创建 提示标签 */
+const earthDiv = document.createElement('div');
+earthDiv.className = 'label';
+earthDiv.innerHTML = '地球';
+// css2D 需要专门的渲染器
+const earthLabel = new CSS2DObject(earthDiv);
+earthLabel.position.set(0, 1, 0);
+earth.add(earthLabel); // 往地球上添加标签
+
+// 中国地区
+const chinaDiv = document.createElement('div');
+chinaDiv.className = 'label1';
+chinaDiv.innerHTML = '中国';
+const chinaLabel = new CSS2DObject(chinaDiv);
+chinaLabel.position.set(-0.3, 0.5, -0.9);
+earth.add(chinaLabel);
+// 中国地区
+
+const moonDiv = document.createElement('div');
+moonDiv.className = 'label';
+moonDiv.innerHTML = '月球';
+// css2D 需要专门的渲染器
+const moonLabel = new CSS2DObject(moonDiv);
+moonLabel.position.set(0, 0.3, 0);
+moon.add(moonLabel);
+
+// 实例化css2D渲染器
+const labelRenderer = new CSS2DRenderer();
+labelRenderer.setSize(window.innerWidth, window.innerHeight);
+document.body.appendChild(labelRenderer.domElement);
+labelRenderer.domElement.style.position = 'fixed';
+labelRenderer.domElement.style.top = '0px';
+labelRenderer.domElement.style.left = '0px';
+labelRenderer.domElement.style.zIndex = '10';
+
+// 实例化射线
+const raycaster = new THREE.Raycaster();
 
 // 渲染器
-const renderer = new THREE.WebGLRenderer();
+const renderer = new THREE.WebGLRenderer({alpha: true});
 renderer.setSize(window.innerWidth, window.innerHeight);
-// renderer.physicallyCorrectLights = true; // 使用物理上正确的光照模式
-// renderer.shadowMap.enabled = true;
 
 // 将元素添加至 body
 document.body.appendChild(renderer.domElement);
-// renderer.render(scene, camera);
 // 创建控制器
-const controls = new OrbitControls(camera, renderer.domElement);
+const controls = new OrbitControls(camera, labelRenderer.domElement);
 // 设置阻尼
 controls.enableDamping = true;
 // 坐标轴辅助器
 const axesHelper = new THREE.AxesHelper(5);
-scene.add(axesHelper);
+// scene.add(axesHelper);
 // 设置时钟
 const clock = new THREE.Clock();
 
 function render() {
   const elapsedTime = clock.getElapsedTime();
-  rawShaderMaterial.uniforms.utime.value = elapsedTime;
+  moon.position.x = Math.cos(elapsedTime) * 5;
+  moon.position.z = Math.sin(elapsedTime) * 5;
 
+  /* 检测射线碰撞 */
+  // 将此向量(坐标)从世界空间投影到相机的标准化设备坐标 (NDC) 空间
+  const chinaPosition = chinaLabel.position.clone();
+  chinaPosition.project(camera); // chinaPosition位置转为 -1 ~ 1 坐标系中的点
+  raycaster.setFromCamera(chinaPosition, camera); // 生成线段
+  // // 检测是否存在碰撞
+  const intersects = raycaster.intersectObjects(scene.children, true);
+  // 如果没有碰撞到任何物体,就表示物体没有被遮挡，展示Label
+  if (intersects.length == 0) {
+    chinaLabel.element.classList.add('visible');
+  } else {
+    chinaLabel.element.classList.remove('visible');
+  }
+
+  labelRenderer.render(scene, camera); // css渲染器
   controls.update();
   renderer.render(scene, camera);
   requestAnimationFrame(render);
@@ -103,4 +121,6 @@ window.addEventListener('resize', () => {
   renderer.setSize(window.innerWidth, window.innerHeight);
   // 设置渲染器像素比
   renderer.setPixelRatio(window.devicePixelRatio);
+  // 更新CSS渲染器
+  labelRenderer.setSize(window.innerWidth, window.innerHeight);
 });
