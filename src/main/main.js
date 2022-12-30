@@ -32,6 +32,24 @@ const moon = new THREE.Mesh(
 );
 scene.add(moon);
 
+// 创建曲线对象
+const curve = new THREE.CatmullRomCurve3(
+  [
+    new THREE.Vector3(-10, 0, 10),
+    new THREE.Vector3(-5, 5, 5),
+    new THREE.Vector3(-0, 0, 5),
+    new THREE.Vector3(5, -5, 5),
+    new THREE.Vector3(10, 0, 10)
+  ],
+  true // 表示起始点位闭合
+);
+// 从曲线中取出51个点， 50表示分割
+const points = curve.getPoints(50);
+const geometry = new THREE.BufferGeometry().setFromPoints(points);
+const material = new THREE.LineBasicMaterial({color: 'aqua'});
+const curveObject = new THREE.Line(geometry, material);
+scene.add(curveObject);
+
 /* 创建 提示标签 */
 const earthDiv = document.createElement('div');
 earthDiv.className = 'label';
@@ -78,6 +96,7 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 // 创建控制器
 const controls = new OrbitControls(camera, labelRenderer.domElement);
+// const controls = new OrbitControls(camera, renderer.domElement);
 // 设置阻尼
 controls.enableDamping = true;
 // 坐标轴辅助器
@@ -88,9 +107,17 @@ const clock = new THREE.Clock();
 
 function render() {
   const elapsedTime = clock.getElapsedTime();
-  moon.position.x = Math.cos(elapsedTime) * 5;
-  moon.position.z = Math.sin(elapsedTime) * 5;
+  // moon.position.x = Math.cos(elapsedTime) * 5;
+  // moon.position.z = Math.sin(elapsedTime) * 5;
 
+  /* 获取曲线上的点 */
+  const time = (elapsedTime * 0.1) % 1; // 将时间转为 [0,1]
+  // 就好比 1s 内走完这条曲线，通过时间来确定具体点的位置
+  const point = curve.getPoint(time); //曲线上的位置。必须在[0,1]范围内
+  // 注意set之接接收xyz分量，copy可以直接接收vec3
+  moon.position.copy(point); // position是只读属性,所以不能直接赋值
+  // camera.position.copy(point); // 设置相机位置
+  // camera.lookAt(earth.position); // 设置相机位置朝向
   /* 检测射线碰撞 */
   // 将此向量(坐标)从世界空间投影到相机的标准化设备坐标 (NDC) 空间
   const chinaPosition = chinaLabel.position.clone();
