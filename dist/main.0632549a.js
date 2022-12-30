@@ -44958,11 +44958,20 @@ function render() {
   raycaster.setFromCamera(chinaPosition, camera); // 生成线段
   // // 检测是否存在碰撞
   var intersects = raycaster.intersectObjects(scene.children, true);
-  // 如果没有碰撞到任何物体,就表示物体没有被遮挡，展示Label
+
+  // 相机到label的距离
+  var cameraToLabel = chinaLabel.position.distanceTo(camera.position);
   if (intersects.length == 0) {
+    // 如果没有碰撞到任何物体,就表示物体没有被遮挡，展示Label
     chinaLabel.element.classList.add('visible');
   } else {
-    chinaLabel.element.classList.remove('visible');
+    var minDistance = intersects[0].distance;
+    if (minDistance < cameraToLabel) {
+      // label 被遮挡
+      chinaLabel.element.classList.remove('visible');
+    } else {
+      chinaLabel.element.classList.add('visible');
+    }
   }
   labelRenderer.render(scene, camera); // css渲染器
   controls.update();
@@ -45007,7 +45016,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "12583" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "2092" + '/');
   ws.onmessage = function (event) {
     checkedAssets = {};
     assetsToAccept = [];

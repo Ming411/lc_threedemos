@@ -98,11 +98,21 @@ function render() {
   raycaster.setFromCamera(chinaPosition, camera); // 生成线段
   // // 检测是否存在碰撞
   const intersects = raycaster.intersectObjects(scene.children, true);
-  // 如果没有碰撞到任何物体,就表示物体没有被遮挡，展示Label
+
+  // 相机到label的距离
+  const cameraToLabel = chinaLabel.position.distanceTo(camera.position);
+
   if (intersects.length == 0) {
+    // 如果没有碰撞到任何物体,就表示物体没有被遮挡，展示Label
     chinaLabel.element.classList.add('visible');
   } else {
-    chinaLabel.element.classList.remove('visible');
+    const minDistance = intersects[0].distance;
+    if (minDistance < cameraToLabel) {
+      // label 被遮挡
+      chinaLabel.element.classList.remove('visible');
+    } else {
+      chinaLabel.element.classList.add('visible');
+    }
   }
 
   labelRenderer.render(scene, camera); // css渲染器
